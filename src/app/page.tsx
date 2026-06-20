@@ -16,6 +16,7 @@ const ALL_MATCHES = matchesData as Match[];
 
 export default function Home() {
   const { identity, save: saveIdentity, hydrated } = useBidderIdentity();
+
   const [topBids, setTopBids] = useState<Record<number, TopBid>>({});
   const [phaseFilter, setPhaseFilter] = useState<PhaseFilter>("Todas");
   const [activeBidMatch, setActiveBidMatch] = useState<Match | null>(null);
@@ -24,54 +25,74 @@ export default function Home() {
 
   const loadTopBids = useCallback(async () => {
     const supabase = createClient();
+
     const { data, error } = await supabase
       .from("current_top_bids")
       .select("*");
+
     if (error) {
       setLoadError(
         "No pudimos cargar las pujas en vivo. Verifica la configuración de Supabase."
       );
       return;
     }
+
     const map: Record<number, TopBid> = {};
+
     for (const row of data ?? []) {
       map[row.match_id] = row as TopBid;
     }
+
     setTopBids(map);
   }, []);
 
   useEffect(() => {
-    // Carga inicial de pujas + suscripción a nuevas pujas en vivo: este es
-    // exactamente el patrón "sincronizar con un sistema externo" que un
-    // efecto debe hacer (fetch al montar, luego escuchar el canal realtime).
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadTopBids();
+
     const supabase = createClient();
+
     const channel = supabase
       .channel("bids-live")
       .on(
         "postgres_changes",
-        { event: "INSERT", schema: "public", table: "bids" },
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "bids",
+        },
         () => loadTopBids()
       )
       .subscribe();
+
     return () => {
       supabase.removeChannel(channel);
     };
   }, [loadTopBids]);
 
   const groupedByDate = useMemo(() => {
+    const now = new Date();
+
+    // Mostrar únicamente partidos que aún no han comenzado
+    const upcomingMatches = ALL_MATCHES.filter(
+      (m) => new Date(m.kickoff) > now
+    );
+
     const filtered =
       phaseFilter === "Todas"
-        ? ALL_MATCHES
-        : ALL_MATCHES.filter((m) => m.phase === phaseFilter);
+        ? upcomingMatches
+        : upcomingMatches.filter((m) => m.phase === phaseFilter);
+
     const groups = new Map<string, Match[]>();
-    for (const m of filtered) {
-      const list = groups.get(m.date) ?? [];
-      list.push(m);
-      groups.set(m.date, list);
+
+    for (const match of filtered) {
+      const list = groups.get(match.date) ?? [];
+      list.push(match);
+      groups.set(match.date, list);
     }
-    return Array.from(groups.entries()).sort(([a], [b]) => a.localeCompare(b));
+
+    return Array.from(groups.entries()).sort(([a], [b]) =>
+      a.localeCompare(b)
+    );
   }, [phaseFilter]);
 
   function handleOpenBid(match: Match) {
@@ -85,13 +106,17 @@ export default function Home() {
         onEditIdentity={() => setShowIdentityModal(true)}
       />
 
-      <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 py-6 space-y-6">
-        <section className="space-y-1.5">
-          <p className="text-sm text-chalk-dim leading-relaxed max-w-2xl">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 space-y-6">
+
+        <section className="max-w-4xl">
+          <p className="text-sm text-chalk-dim leading-relaxed">
             Puja por el marcador exacto de cualquiera de los{" "}
-            <span className="text-chalk font-medium">104 partidos</span> del
-            Mundial 2026. Todo en USD, sin precio mínimo ni techo. Cada subasta
-            cierra justo cuando el árbitro pita el inicio del partido.
+            <span className="text-chalk font-medium">
+              104 partidos
+            </span>{" "}
+            del Mundial 2026. Todo en USD, sin precio mínimo ni techo.
+            Cada subasta cierra justo cuando el árbitro pita el inicio
+            del partido.
           </p>
         </section>
 
@@ -101,15 +126,19 @@ export default function Home() {
           </div>
         )}
 
-        <PhaseFilterBar active={phaseFilter} onChange={setPhaseFilter} />
+        <PhaseFilterBar
+          active={phaseFilter}
+          onChange={setPhaseFilter}
+        />
 
-        <div className="space-y-8">
+        <div className="space-y-10">
           {groupedByDate.map(([date, matches]) => (
             <section key={date}>
-              <h2 className="font-display text-sm font-semibold uppercase tracking-widest text-trophy mb-3 sticky top-[73px] sm:top-[77px] bg-pitch-900/95 backdrop-blur py-1.5 -mx-1 px-1 z-10">
+              <h2 className="font-display text-sm font-semibold uppercase tracking-widest text-trophy mb-4">
                 {formatDateHeading(date)}
               </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
                 {matches.map((m) => (
                   <MatchCard
                     key={m.id}
@@ -124,10 +153,9 @@ export default function Home() {
         </div>
       </main>
 
-      <footer className="border-t border-line py-6">
+      <footer className="border-t border-line py-6 mt-10">
         <p className="text-center text-[11px] text-chalk-dim">
-          Quiniela amistosa entre amigos · No involucra pagos reales dentro de
-          la app · Horarios en hora del Este (ET)
+          Quiniela amistosa entre amigos · No involucra pagos reales dentro de la app · Horarios en hora del Este (ET)
         </p>
       </footer>
 
