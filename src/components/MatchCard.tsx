@@ -23,13 +23,23 @@ const FLAGS: Record<string, string> = {
   Italy: "🇮🇹",
 };
 
+type MatchSummary = {
+  match_id: number;
+  score_count: number;
+  bidder_count: number;
+  bid_count: number;
+  last_bid_at: string | null;
+};
+
 export function MatchCard({
   match,
   topBid,
+  summary,
   onOpenBid,
 }: {
   match: Match;
   topBid: TopBid | null;
+  summary: MatchSummary | null;
   onOpenBid: (match: Match) => void;
 }) {
   const [now] = useState(() => Date.now());
@@ -91,6 +101,40 @@ export function MatchCard({
             homeAbbr={match.home.slice(0, 3).toUpperCase()}
             awayAbbr={match.away.slice(0, 3).toUpperCase()}
           />
+        </div>
+
+        <div className="mt-5 rounded-2xl bg-black/30 border border-zinc-800 p-4 space-y-2">
+
+          <div className="flex justify-between text-sm">
+            <span className="text-zinc-400">
+              🎯 Marcadores tomados
+            </span>
+
+            <span className="text-white font-semibold">
+              {summary?.score_count ?? 0}
+            </span>
+          </div>
+
+          <div className="flex justify-between text-sm">
+            <span className="text-zinc-400">
+              👥 Participantes
+            </span>
+
+            <span className="text-white font-semibold">
+              {summary?.bidder_count ?? 0}
+            </span>
+          </div>
+
+          <div className="flex justify-between text-sm">
+            <span className="text-zinc-400">
+              🔥 Pujas realizadas
+            </span>
+
+            <span className="text-white font-semibold">
+              {summary?.bid_count ?? 0}
+            </span>
+          </div>
+
         </div>
 
       </div>
