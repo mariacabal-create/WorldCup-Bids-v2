@@ -38,14 +38,22 @@ export function BidModal({
   const [awayScore, setAwayScore] = useState(
     currentTop ? String(currentTop.away_score) : ""
   );
-
-  const minBid = currentTop ? currentTop.amount_usd + 1 : 1;
-  const [amount, setAmount] = useState(String(minBid));
+  const [amount, setAmount] = useState("1");
   const [scoreBids, setScoreBids] = useState<ScoreBid[]>([]);
   const [loadingScoreBids, setLoadingScoreBids] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
+
+  const selectedScoreBid = scoreBids.find(
+    (bid) =>
+      String(bid.home_score) === homeScore &&
+      String(bid.away_score) === awayScore
+  );
+
+  const selectedMinBid = selectedScoreBid
+    ? Number(selectedScoreBid.amount_usd) + 1
+    : 1;
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -78,6 +86,16 @@ export function BidModal({
     loadScoreBids();
   }, [match.id]);
 
+  useEffect(() => {
+    if (homeScore === "" || awayScore === "") return;
+
+    const currentAmount = Number(amount);
+
+    if (!Number.isFinite(currentAmount) || currentAmount < selectedMinBid) {
+      setAmount(String(selectedMinBid));
+    }
+  }, [homeScore, awayScore, selectedMinBid, amount]);
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
@@ -91,17 +109,19 @@ export function BidModal({
     if (!trimmedName) return setError("Escribe tu nombre.");
     if (!/^\S+@\S+\.\S+$/.test(trimmedEmail))
       return setError("Escribe un correo válido.");
-    if (!Number.isInteger(hs) || hs < 0 || hs > 7)
+    if (homeScore === "" || !Number.isInteger(hs) || hs < 0 || hs > 7)
       return setError("El marcador local debe ser un número entre 0 y 7.");
-    if (!Number.isInteger(as) || as < 0 || as > 7)
+    if (awayScore === "" || !Number.isInteger(as) || as < 0 || as > 7)
       return setError("El marcador visitante debe ser un número entre 0 y 7.");
     if (!Number.isFinite(amt) || amt <= 0)
       return setError("La puja debe ser un monto en USD mayor a 0.");
-    if (amt <= (currentTop?.amount_usd ?? 0))
+    if (amt < selectedMinBid)
       return setError(
-        `Tu puja debe superar la puja actual de ${formatUSD(
-          currentTop!.amount_usd
-        )}.`
+        selectedScoreBid
+          ? `Para tomar este marcador debes pujar mínimo ${formatUSD(
+              selectedMinBid
+            )}.`
+          : "Este marcador está libre. La puja mínima es $1."
       );
     if (new Date(match.kickoff).getTime() <= Date.now())
       return setError("Esta subasta ya cerró: el partido ya comenzó.");
@@ -151,10 +171,7 @@ export function BidModal({
             {match.group_name ? ` · Grupo ${match.group_name}` : ""}
           </p>
 
-          <h2
-            id="bid-modal-title"
-            className="text-3xl font-bold text-white mt-2"
-          >
+          <h2 id="bid-modal-title" className="text-3xl font-bold text-white mt-2">
             {match.home} vs {match.away}
           </h2>
 
@@ -165,10 +182,7 @@ export function BidModal({
 
         <div className="px-6 py-5 border-b border-zinc-800">
           <div className="flex items-center justify-between gap-3 mb-3">
-            <h3 className="text-white font-bold text-lg">
-              Marcadores ya pujados
-            </h3>
-
+            <h3 className="text-white font-bold text-lg">Marcadores ya pujados</h3>
             <span className="text-xs text-zinc-400">
               {scoreBids.length} marcador{scoreBids.length === 1 ? "" : "es"}
             </span>
@@ -192,14 +206,16 @@ export function BidModal({
                   homeScore === String(bid.home_score) &&
                   awayScore === String(bid.away_score);
 
+                const nextBid = Number(bid.amount_usd) + 1;
+
                 return (
                   <button
-                    key={`${bid.home_score}-${bid.away_score}-${bid.bidder_name}`}
+                    key={`${bid.home_score}-${bid.away_score}-${bid.bidder_name}-${bid.created_at}`}
                     type="button"
                     onClick={() => {
                       setHomeScore(String(bid.home_score));
                       setAwayScore(String(bid.away_score));
-                      setAmount(String(Math.max(minBid, bid.amount_usd + 1)));
+                      setAmount(String(nextBid));
                     }}
                     className={`text-left rounded-2xl border px-4 py-3 transition ${
                       selected
@@ -208,13 +224,18 @@ export function BidModal({
                     }`}
                   >
                     <div className="flex items-center justify-between gap-3">
-                      <div className="text-3xl font-bold text-yellow-300 scoreboard-digit">
-                        {bid.home_score} - {bid.away_score}
+                      <div>
+                        <div className="text-3xl font-bold text-yellow-300 scoreboard-digit">
+                          {bid.home_score} - {bid.away_score}
+                        </div>
+                        <div className="text-xs text-zinc-500 mt-1">
+                          Para tomarlo: {formatUSD(nextBid)}
+                        </div>
                       </div>
 
                       <div className="text-right">
                         <div className="text-white font-bold">
-                          {formatUSD(bid.amount_usd)}
+                          {formatUSD(Number(bid.amount_usd))}
                         </div>
                         <div className="text-xs text-zinc-400 truncate max-w-[130px]">
                           {bid.bidder_name}
@@ -269,7 +290,7 @@ export function BidModal({
                 id="amount"
                 type="number"
                 inputMode="decimal"
-                min={minBid}
+                min={selectedMinBid}
                 step="1"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
@@ -278,13 +299,13 @@ export function BidModal({
             </div>
 
             <p className="text-xs text-zinc-500 mt-2">
-              {currentTop
-                ? `Puja mínima: ${formatUSD(
-                    minBid
-                  )}. Debe superar la puja actual de ${formatUSD(
-                    currentTop.amount_usd
-                  )}.`
-                : "No hay límite de precio — tú abres la subasta."}
+              {homeScore === "" || awayScore === ""
+                ? "Elige un marcador para ver la puja mínima."
+                : selectedScoreBid
+                ? `Este marcador lo tiene ${selectedScoreBid.bidder_name} con ${formatUSD(
+                    Number(selectedScoreBid.amount_usd)
+                  )}. Para tomarlo debes pujar mínimo ${formatUSD(selectedMinBid)}.`
+                : "Este marcador está libre. Puedes abrirlo desde $1."}
             </p>
           </div>
 
