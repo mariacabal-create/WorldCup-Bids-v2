@@ -6,24 +6,22 @@ import { LeaderScoreboard } from "./LeaderScoreboard";
 import { formatKickoffTime } from "@/lib/format";
 import type { Match, TopBid } from "@/types/domain";
 
-const PHASE_COLORS: Record<string, string> = {
-  "Fase de grupos": "bg-score-blue/20 text-score-blue border-score-blue/40",
-  Dieciseisavos: "bg-trophy/15 text-trophy border-trophy/40",
-  Octavos: "bg-trophy/20 text-trophy border-trophy/50",
-  Cuartos: "bg-trophy/25 text-trophy-bright border-trophy/60",
-  Semifinal: "bg-card-red/20 text-card-red border-card-red/40",
-  "Tercer puesto": "bg-chalk-dim/15 text-chalk-dim border-chalk-dim/30",
-  Final: "bg-card-red/25 text-card-red border-card-red/60",
+const FLAGS: Record<string, string> = {
+  Netherlands: "🇳🇱",
+  Sweden: "🇸🇪",
+  Mexico: "🇲🇽",
+  "South Africa": "🇿🇦",
+  USA: "🇺🇸",
+  Canada: "🇨🇦",
+  Brazil: "🇧🇷",
+  Argentina: "🇦🇷",
+  Spain: "🇪🇸",
+  England: "🏴",
+  France: "🇫🇷",
+  Germany: "🇩🇪",
+  Portugal: "🇵🇹",
+  Italy: "🇮🇹",
 };
-
-function abbreviate(team: string): string {
-  if (team.length <= 4) return team.toUpperCase();
-  const words = team.split(/[\s/]+/);
-  if (words.length >= 2) {
-    return words.map((w) => w[0]).join("").slice(0, 3).toUpperCase();
-  }
-  return team.slice(0, 3).toUpperCase();
-}
 
 export function MatchCard({
   match,
@@ -35,52 +33,82 @@ export function MatchCard({
   onOpenBid: (match: Match) => void;
 }) {
   const [now] = useState(() => Date.now());
+
   const closed = new Date(match.kickoff).getTime() <= now;
-  const phaseStyle =
-    PHASE_COLORS[match.phase] ?? "bg-chalk-dim/15 text-chalk-dim border-chalk-dim/30";
 
   return (
-    <article className="rounded-xl border border-line bg-pitch-800 overflow-hidden hover:border-trophy/40 transition-colors">
-      <div className="px-4 pt-4 pb-3">
-        <div className="flex items-center justify-between gap-2 mb-3">
-          <span
-            className={`inline-block text-[10px] font-display font-semibold uppercase tracking-widest px-2 py-0.5 rounded border ${phaseStyle}`}
-          >
+    <article className="bg-zinc-900 border border-zinc-800 rounded-3xl overflow-hidden shadow-xl hover:border-yellow-500 transition-all">
+
+      <div className="px-5 pt-5">
+
+        <div className="flex justify-between items-center mb-4">
+
+          <div className="text-xs uppercase tracking-widest text-yellow-400 font-semibold">
             {match.group_name ? `Grupo ${match.group_name}` : match.phase}
-          </span>
-          <span className="text-[11px] text-chalk-dim font-body">
+          </div>
+
+          <div className="text-xs text-zinc-400">
             {formatKickoffTime(match.time)}
-          </span>
+          </div>
+
         </div>
 
-        <div className="flex items-baseline justify-between gap-2 mb-1">
-          <h3 className="font-display text-lg font-medium leading-tight">
-            {match.home}
-            <span className="text-chalk-dim mx-1.5 font-normal">vs</span>
-            {match.away}
-          </h3>
-        </div>
-        <p className="text-xs text-chalk-dim mb-3">
-          {match.venue}, {match.city}
-        </p>
+        <div className="flex items-center justify-between">
 
-        <LeaderScoreboard
-          topBid={topBid}
-          homeAbbr={abbreviate(match.home)}
-          awayAbbr={abbreviate(match.away)}
-        />
+          <div className="flex flex-col gap-4">
+
+            <div className="flex items-center gap-3">
+              <div className="text-3xl">
+                {FLAGS[match.home] ?? "⚽"}
+              </div>
+
+              <div className="text-xl font-bold text-white">
+                {match.home}
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <div className="text-3xl">
+                {FLAGS[match.away] ?? "⚽"}
+              </div>
+
+              <div className="text-xl font-bold text-white">
+                {match.away}
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+        <div className="mt-5 text-sm text-zinc-400">
+          📍 {match.venue}, {match.city}
+        </div>
+
+        <div className="mt-5">
+          <LeaderScoreboard
+            topBid={topBid}
+            homeAbbr={match.home.slice(0, 3).toUpperCase()}
+            awayAbbr={match.away.slice(0, 3).toUpperCase()}
+          />
+        </div>
+
       </div>
 
-      <div className="px-4 py-3 bg-pitch-900/40 border-t border-line flex items-center justify-between gap-3">
+      <div className="border-t border-zinc-800 mt-5 px-5 py-4 flex items-center justify-between">
+
         <Countdown kickoff={match.kickoff} />
+
         <button
           onClick={() => onOpenBid(match)}
           disabled={closed}
-          className="shrink-0 px-4 py-2 rounded-md bg-trophy text-pitch-900 text-xs font-display font-semibold uppercase tracking-wide hover:bg-trophy-bright transition-colors disabled:bg-pitch-700 disabled:text-chalk-dim disabled:cursor-not-allowed"
+          className="bg-yellow-500 hover:bg-yellow-400 text-black font-bold px-5 py-3 rounded-2xl transition-all"
         >
-          {closed ? "Cerrada" : topBid ? "Superar puja" : "Pujar"}
+          {closed ? "Cerrada" : "Pujar"}
         </button>
+
       </div>
+
     </article>
   );
 }
