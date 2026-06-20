@@ -1,5 +1,33 @@
 @import "tailwindcss";
 
+:root {
+  --pitch-900: #050505;
+  --pitch-800: #111111;
+  --pitch-700: #18181b;
+  --chalk: #ffffff;
+  --chalk-dim: #a1a1aa;
+  --trophy: #facc15;
+  --trophy-bright: #fde047;
+  --card-red: #ef4444;
+  --score-blue: #38bdf8;
+  --line: rgba(255, 255, 255, 0.12);
+}
+
+@theme inline {
+  --color-pitch-900: var(--pitch-900);
+  --color-pitch-800: var(--pitch-800);
+  --color-pitch-700: var(--pitch-700);
+  --color-chalk: var(--chalk);
+  --color-chalk-dim: var(--chalk-dim);
+  --color-trophy: var(--trophy);
+  --color-trophy-bright: var(--trophy-bright);
+  --color-card-red: var(--card-red);
+  --color-score-blue: var(--score-blue);
+  --color-line: var(--line);
+  --font-display: var(--font-oswald);
+  --font-body: var(--font-inter);
+}
+
 * {
   box-sizing: border-box;
 }
@@ -11,23 +39,15 @@ html {
 body {
   margin: 0;
   min-height: 100vh;
-
-  color: white;
-
-  font-family: var(--font-inter), system-ui, sans-serif;
-
   background:
-    radial-gradient(circle at top, rgba(255,215,0,.08), transparent 30%),
-    linear-gradient(
-      180deg,
-      #050505 0%,
-      #0a0a0a 25%,
-      #111111 100%
-    );
+    radial-gradient(circle at top, rgba(250, 204, 21, 0.12), transparent 30%),
+    linear-gradient(180deg, #050505 0%, #0a0a0a 45%, #111111 100%);
+  color: var(--chalk);
+  font-family: var(--font-body), system-ui, sans-serif;
 }
 
 ::selection {
-  background: #facc15;
+  background: var(--trophy);
   color: black;
 }
 
@@ -48,16 +68,26 @@ body {
   background: #555;
 }
 
+:focus-visible {
+  outline: 2px solid var(--trophy);
+  outline-offset: 2px;
+}
+
 .scoreboard-digit {
   font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+
+.font-display {
+  font-family: var(--font-oswald), "Arial Narrow", sans-serif;
 }
 
 @keyframes pulse-ring {
   0% {
-    box-shadow: 0 0 0 0 rgba(250,204,21,.5);
+    box-shadow: 0 0 0 0 rgba(250, 204, 21, 0.5);
   }
   100% {
-    box-shadow: 0 0 0 14px rgba(250,204,21,0);
+    box-shadow: 0 0 0 14px rgba(250, 204, 21, 0);
   }
 }
 
@@ -70,7 +100,6 @@ body {
     transform: rotateX(90deg);
     opacity: 0;
   }
-
   100% {
     transform: rotateX(0deg);
     opacity: 1;
@@ -78,5 +107,5 @@ body {
 }
 
 .flip-update {
-  animation: flip-in .4s ease;
+  animation: flip-in 0.4s ease;
 }
