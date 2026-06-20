@@ -72,10 +72,23 @@ export default function Home() {
   const groupedByDate = useMemo(() => {
     const now = new Date();
 
-    // Mostrar únicamente partidos que aún no han comenzado
-    const upcomingMatches = ALL_MATCHES.filter(
-      (m) => new Date(m.kickoff) > now
-    );
+    console.log("AHORA ES:", now.toString());
+
+    const upcomingMatches = ALL_MATCHES.filter((m) => {
+      const kickoff = new Date(m.kickoff);
+
+      console.log(
+        m.home,
+        "vs",
+        m.away,
+        "kickoff:",
+        kickoff.toString(),
+        "futuro:",
+        kickoff > now
+      );
+
+      return kickoff > now;
+    });
 
     const filtered =
       phaseFilter === "Todas"
@@ -107,16 +120,11 @@ export default function Home() {
       />
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 space-y-6">
-
         <section className="max-w-4xl">
           <p className="text-sm text-chalk-dim leading-relaxed">
             Puja por el marcador exacto de cualquiera de los{" "}
-            <span className="text-chalk font-medium">
-              104 partidos
-            </span>{" "}
-            del Mundial 2026. Todo en USD, sin precio mínimo ni techo.
-            Cada subasta cierra justo cuando el árbitro pita el inicio
-            del partido.
+            <span className="text-chalk font-medium">104 partidos</span> del
+            Mundial 2026. Todo en USD, sin precio mínimo ni techo.
           </p>
         </section>
 
@@ -155,7 +163,7 @@ export default function Home() {
 
       <footer className="border-t border-line py-6 mt-10">
         <p className="text-center text-[11px] text-chalk-dim">
-          Quiniela amistosa entre amigos · No involucra pagos reales dentro de la app · Horarios en hora del Este (ET)
+          Quiniela amistosa entre amigos · Horarios en hora del Este (ET)
         </p>
       </footer>
 
