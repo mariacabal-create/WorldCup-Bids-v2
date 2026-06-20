@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase";
 import { useBidderIdentity } from "@/lib/useBidderIdentity";
-import { formatDateHeading } from "@/lib/format";
+import { formatDateHeading, formatUSD } from "@/lib/format";
 import { Header } from "@/components/Header";
 import { PhaseFilterBar, type PhaseFilter } from "@/components/PhaseFilterBar";
 import { MatchCard } from "@/components/MatchCard";
@@ -22,11 +22,21 @@ export type MatchBidSummary = {
   last_bid_at: string | null;
 };
 
+type PlayerRanking = {
+  bidder_id: string;
+  bidder_name: string;
+  total_bids: number;
+  matches_played: number;
+  total_bid_usd: number;
+  last_bid_at: string | null;
+};
+
 export default function Home() {
   const { identity, save: saveIdentity, hydrated } = useBidderIdentity();
 
   const [topBids, setTopBids] = useState<Record<number, TopBid>>({});
   const [summaries, setSummaries] = useState<Record<number, MatchBidSummary>>({});
+  const [rankings, setRankings] = useState<PlayerRanking[]>([]);
   const [phaseFilter, setPhaseFilter] = useState<PhaseFilter>("Todas");
   const [activeBidMatch, setActiveBidMatch] = useState<Match | null>(null);
   const [showIdentityModal, setShowIdentityModal] = useState(false);
@@ -43,7 +53,12 @@ export default function Home() {
       .from("match_bid_summaries")
       .select("*");
 
-    if (topError || summaryError) {
+    const { data: rankingData, error: rankingError } = await supabase
+      .from("player_rankings")
+      .select("*")
+      .limit(10);
+
+    if (topError || summaryError || rankingError) {
       setLoadError("No pudimos cargar las pujas en vivo.");
       return;
     }
@@ -60,6 +75,7 @@ export default function Home() {
 
     setTopBids(topMap);
     setSummaries(summaryMap);
+    setRankings((rankingData ?? []) as PlayerRanking[]);
   }, []);
 
   useEffect(() => {
@@ -126,6 +142,63 @@ export default function Home() {
             {loadError}
           </div>
         )}
+
+        <section className="rounded-3xl border border-zinc-800 bg-zinc-950 p-5 shadow-xl">
+          <div className="flex items-center justify-between gap-4 mb-4">
+            <div>
+              <p className="text-yellow-400 text-xs uppercase tracking-[0.25em] font-bold">
+                Ranking general
+              </p>
+              <h2 className="text-white text-2xl font-bold mt-1">
+                Top pujadores
+              </h2>
+            </div>
+
+            <div className="text-3xl">🏆</div>
+          </div>
+
+          {rankings.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-zinc-700 bg-black/30 px-4 py-5 text-center">
+              <p className="text-zinc-300 font-semibold">
+                Todavía no hay ranking
+              </p>
+              <p className="text-zinc-500 text-sm mt-1">
+                La primera puja abrirá la tabla.
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {rankings.map((player, index) => (
+                <div
+                  key={player.bidder_id}
+                  className="rounded-2xl border border-zinc-800 bg-black/30 px-4 py-3 flex items-center justify-between gap-4"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-9 h-9 rounded-full bg-yellow-400 text-black flex items-center justify-center font-bold">
+                      {index + 1}
+                    </div>
+
+                    <div className="min-w-0">
+                      <p className="text-white font-bold truncate">
+                        {player.bidder_name}
+                      </p>
+                      <p className="text-xs text-zinc-500">
+                        {player.total_bids} pujas · {player.matches_played} partidos
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="text-right shrink-0">
+                    <p className="text-yellow-300 font-bold">
+                      {formatUSD(Number(player.total_bid_usd))}
+                    </p>
+                    <p className="text-xs text-zinc-500">total pujado</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
 
         <PhaseFilterBar active={phaseFilter} onChange={setPhaseFilter} />
 
