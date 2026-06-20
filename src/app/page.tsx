@@ -187,7 +187,59 @@ export default function Home() {
             {loadError}
           </div>
         )}
+<section className="rounded-3xl border border-zinc-800 bg-zinc-950 p-5 shadow-xl">
+  <div className="flex items-center justify-between gap-4 mb-4">
+    <div>
+      <p className="text-yellow-400 text-xs uppercase tracking-[0.25em] font-bold">
+        ¿Cómo se juega?
+      </p>
 
+      <h2 className="text-white text-2xl font-bold mt-1">
+        ⚽ Reglas del juego
+      </h2>
+    </div>
+
+    <div className="text-3xl">🏆</div>
+  </div>
+
+  <div className="grid md:grid-cols-3 gap-3">
+    <div className="rounded-2xl bg-black/30 border border-zinc-800 p-4">
+      <p className="text-2xl mb-2">🎯</p>
+
+      <p className="text-white font-semibold">
+        Elige un marcador
+      </p>
+
+      <p className="text-sm text-zinc-500 mt-1">
+        Cada resultado es una subasta independiente.
+      </p>
+    </div>
+
+    <div className="rounded-2xl bg-black/30 border border-zinc-800 p-4">
+      <p className="text-2xl mb-2">🔥</p>
+
+      <p className="text-white font-semibold">
+        Defiéndelo
+      </p>
+
+      <p className="text-sm text-zinc-500 mt-1">
+        Si alguien quiere el mismo marcador, deberá superarte.
+      </p>
+    </div>
+
+    <div className="rounded-2xl bg-black/30 border border-zinc-800 p-4">
+      <p className="text-2xl mb-2">🏆</p>
+
+      <p className="text-white font-semibold">
+        Gana el dueño correcto
+      </p>
+
+      <p className="text-sm text-zinc-500 mt-1">
+        Quien tenga el marcador exacto al final del partido gana.
+      </p>
+    </div>
+  </div>
+</section>
         <section className="rounded-3xl border border-zinc-800 bg-zinc-950 p-5 shadow-xl">
           <div className="flex items-center justify-between gap-4 mb-4">
             <div>
