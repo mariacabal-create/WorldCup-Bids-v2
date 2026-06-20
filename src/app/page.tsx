@@ -44,6 +44,18 @@ type LatestBid = {
   bidder_name: string;
 };
 
+type ContestedScore = {
+  match_id: number;
+  home: string;
+  away: string;
+  home_score: number;
+  away_score: number;
+  total_bids: number;
+  total_players: number;
+  top_amount_usd: number;
+  last_bid_at: string | null;
+};
+
 export default function Home() {
   const { identity, save: saveIdentity, hydrated } = useBidderIdentity();
 
@@ -51,6 +63,7 @@ export default function Home() {
   const [summaries, setSummaries] = useState<Record<number, MatchBidSummary>>({});
   const [activeMatches, setActiveMatches] = useState<ActiveMatch[]>([]);
   const [latestBids, setLatestBids] = useState<LatestBid[]>([]);
+  const [contestedScores, setContestedScores] = useState<ContestedScore[]>([]);
   const [phaseFilter, setPhaseFilter] = useState<PhaseFilter>("Todas");
   const [activeBidMatch, setActiveBidMatch] = useState<Match | null>(null);
   const [showIdentityModal, setShowIdentityModal] = useState(false);
@@ -77,7 +90,18 @@ export default function Home() {
       .select("*")
       .limit(8);
 
-    if (topError || summaryError || activeError || latestError) {
+    const { data: contestedData, error: contestedError } = await supabase
+      .from("most_contested_scores")
+      .select("*")
+      .limit(6);
+
+    if (
+      topError ||
+      summaryError ||
+      activeError ||
+      latestError ||
+      contestedError
+    ) {
       setLoadError("No pudimos cargar las pujas en vivo.");
       return;
     }
@@ -96,6 +120,7 @@ export default function Home() {
     setSummaries(summaryMap);
     setActiveMatches((activeData ?? []) as ActiveMatch[]);
     setLatestBids((latestData ?? []) as LatestBid[]);
+    setContestedScores((contestedData ?? []) as ContestedScore[]);
   }, []);
 
   useEffect(() => {
@@ -213,6 +238,66 @@ export default function Home() {
                         {item.total_bids}
                       </p>
                       <p className="text-xs text-zinc-500">pujas</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+
+        <section className="rounded-3xl border border-zinc-800 bg-zinc-950 p-5 shadow-xl">
+          <div className="flex items-center justify-between gap-4 mb-4">
+            <div>
+              <p className="text-yellow-400 text-xs uppercase tracking-[0.25em] font-bold">
+                Marcadores más disputados
+              </p>
+              <h2 className="text-white text-2xl font-bold mt-1">
+                🔥 Los resultados más peleados
+              </h2>
+            </div>
+
+            <div className="text-3xl">🎯</div>
+          </div>
+
+          {contestedScores.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-zinc-700 bg-black/30 px-4 py-5 text-center">
+              <p className="text-zinc-300 font-semibold">
+                Todavía no hay marcadores disputados
+              </p>
+              <p className="text-zinc-500 text-sm mt-1">
+                Cuando varias personas peleen un marcador, aparecerá aquí.
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {contestedScores.map((score, index) => (
+                <div
+                  key={`${score.match_id}-${score.home_score}-${score.away_score}`}
+                  className="rounded-2xl border border-zinc-800 bg-black/30 px-4 py-3"
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="min-w-0">
+                      <p className="text-xs text-yellow-400 font-bold">
+                        #{index + 1}
+                      </p>
+
+                      <p className="text-white font-bold truncate mt-1">
+                        {score.home} vs {score.away}
+                      </p>
+
+                      <p className="text-xs text-zinc-500 mt-1">
+                        {score.total_bids} pujas · {score.total_players} participantes
+                      </p>
+                    </div>
+
+                    <div className="text-right shrink-0">
+                      <p className="text-yellow-300 text-3xl font-bold scoreboard-digit">
+                        {score.home_score}-{score.away_score}
+                      </p>
+                      <p className="text-xs text-zinc-500">
+                        {formatUSD(Number(score.top_amount_usd))}
+                      </p>
                     </div>
                   </div>
                 </div>
