@@ -10,33 +10,35 @@ export function Header({
   onEditIdentity: () => void;
 }) {
   return (
-    <header className="sticky top-0 z-30 bg-pitch-900/95 backdrop-blur border-b border-line">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between gap-4">
+    <header className="sticky top-0 z-30 bg-black/95 backdrop-blur border-b border-zinc-800">
+      <div className="max-w-7xl mx-auto px-6 py-7 flex items-center justify-between gap-6">
         <div>
-          <p className="font-display text-[11px] uppercase tracking-[0.2em] text-trophy">
-            Mundial 2026
+          <p className="text-yellow-400 text-xs sm:text-sm uppercase tracking-[0.35em] font-semibold">
+            FIFA WORLD CUP 2026
           </p>
-          <h1 className="font-display text-xl sm:text-2xl font-semibold leading-tight">
+
+          <h1 className="text-4xl sm:text-5xl font-bold text-white mt-2 leading-tight">
             Subasta de Marcadores
           </h1>
+
+          <p className="text-zinc-400 text-base mt-3">
+            Compite con tus amigos por los resultados exactos de cada partido
+          </p>
         </div>
+
         <button
           onClick={onEditIdentity}
-          className="text-right group"
+          className="shrink-0 bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-3 hover:border-yellow-400 transition"
         >
           {identity ? (
             <>
-              <p className="text-xs text-chalk-dim group-hover:text-chalk transition-colors">
-                Pujando como
-              </p>
-              <p className="font-display text-sm font-medium text-trophy">
+              <div className="text-zinc-400 text-xs">Pujando como</div>
+              <div className="text-yellow-400 font-semibold">
                 {identity.name}
-              </p>
+              </div>
             </>
           ) : (
-            <p className="font-display text-xs uppercase tracking-wide text-chalk-dim border border-line rounded-full px-3 py-1.5 hover:border-trophy hover:text-trophy transition-colors">
-              Identifícate
-            </p>
+            <div className="text-white font-semibold">👤 Identifícate</div>
           )}
         </button>
       </div>
