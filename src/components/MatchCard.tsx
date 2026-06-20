@@ -7,43 +7,21 @@ import { formatKickoffTime } from "@/lib/format";
 import type { Match, TopBid } from "@/types/domain";
 
 const FLAGS: Record<string, string> = {
-  Mexico: "🇲🇽",
-  "South Africa": "🇿🇦",
-  "South Korea": "🇰🇷",
-  Czechia: "🇨🇿",
-  Canada: "🇨🇦",
-  USA: "🇺🇸",
   Netherlands: "🇳🇱",
   Sweden: "🇸🇪",
-  Germany: "🇩🇪",
-  Japan: "🇯🇵",
+  Mexico: "🇲🇽",
+  "South Africa": "🇿🇦",
+  USA: "🇺🇸",
+  Canada: "🇨🇦",
   Brazil: "🇧🇷",
-  Morocco: "🇲🇦",
   Argentina: "🇦🇷",
-  Colombia: "🇨🇴",
+  Spain: "🇪🇸",
   England: "🏴",
   France: "🇫🇷",
-  Spain: "🇪🇸",
+  Germany: "🇩🇪",
   Portugal: "🇵🇹",
-  Uruguay: "🇺🇾",
-  Belgium: "🇧🇪",
+  Italy: "🇮🇹",
 };
-
-function flagFor(team: string): string {
-  return FLAGS[team] ?? "⚽";
-}
-
-function abbreviate(team: string): string {
-  if (team.length <= 4) return team.toUpperCase();
-
-  const words = team.split(/[\s/]+/);
-
-  if (words.length >= 2) {
-    return words.map((w) => w[0]).join("").slice(0, 3).toUpperCase();
-  }
-
-  return team.slice(0, 3).toUpperCase();
-}
 
 export function MatchCard({
   match,
@@ -55,61 +33,82 @@ export function MatchCard({
   onOpenBid: (match: Match) => void;
 }) {
   const [now] = useState(() => Date.now());
+
   const closed = new Date(match.kickoff).getTime() <= now;
 
   return (
-    <article className="rounded-3xl border border-zinc-800 bg-zinc-950 overflow-hidden shadow-2xl hover:border-yellow-400/60 transition-all">
-      <div className="p-6">
-        <div className="flex items-center justify-between gap-4 mb-6">
-          <span className="text-yellow-400 text-xs font-bold uppercase tracking-[0.25em]">
+    <article className="bg-zinc-900 border border-zinc-800 rounded-3xl overflow-hidden shadow-xl hover:border-yellow-500 transition-all">
+
+      <div className="px-5 pt-5">
+
+        <div className="flex justify-between items-center mb-4">
+
+          <div className="text-xs uppercase tracking-widest text-yellow-400 font-semibold">
             {match.group_name ? `Grupo ${match.group_name}` : match.phase}
-          </span>
+          </div>
 
-          <span className="text-zinc-400 text-sm">
+          <div className="text-xs text-zinc-400">
             {formatKickoffTime(match.time)}
-          </span>
-        </div>
-
-        <div className="space-y-5">
-          <div className="flex items-center gap-4">
-            <span className="text-4xl">{flagFor(match.home)}</span>
-            <h3 className="text-2xl font-bold text-white leading-tight">
-              {match.home}
-            </h3>
           </div>
 
-          <div className="flex items-center gap-4">
-            <span className="text-4xl">{flagFor(match.away)}</span>
-            <h3 className="text-2xl font-bold text-white leading-tight">
-              {match.away}
-            </h3>
-          </div>
         </div>
 
-        <p className="mt-6 text-sm text-zinc-400">
+        <div className="flex items-center justify-between">
+
+          <div className="flex flex-col gap-4">
+
+            <div className="flex items-center gap-3">
+              <div className="text-3xl">
+                {FLAGS[match.home] ?? "⚽"}
+              </div>
+
+              <div className="text-xl font-bold text-white">
+                {match.home}
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <div className="text-3xl">
+                {FLAGS[match.away] ?? "⚽"}
+              </div>
+
+              <div className="text-xl font-bold text-white">
+                {match.away}
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+        <div className="mt-5 text-sm text-zinc-400">
           📍 {match.venue}, {match.city}
-        </p>
+        </div>
 
-        <div className="mt-6">
+        <div className="mt-5">
           <LeaderScoreboard
             topBid={topBid}
-            homeAbbr={abbreviate(match.home)}
-            awayAbbr={abbreviate(match.away)}
+            homeAbbr={match.home.slice(0, 3).toUpperCase()}
+            awayAbbr={match.away.slice(0, 3).toUpperCase()}
           />
         </div>
+
       </div>
 
-      <div className="border-t border-zinc-800 bg-black/40 px-6 py-5 flex items-center justify-between gap-4">
+      <div className="border-t border-zinc-800 mt-5 px-5 py-4 flex items-center justify-between">
+
         <Countdown kickoff={match.kickoff} />
 
         <button
           onClick={() => onOpenBid(match)}
           disabled={closed}
-          className="shrink-0 rounded-2xl bg-yellow-400 px-6 py-3 text-sm font-bold text-black hover:bg-yellow-300 transition disabled:bg-zinc-700 disabled:text-zinc-400 disabled:cursor-not-allowed"
+          className="bg-yellow-500 hover:bg-yellow-400 text-black font-bold px-5 py-3 rounded-2xl transition-all"
         >
-          {closed ? "Cerrada" : topBid ? "Superar puja" : "Pujar"}
+          {closed ? "Cerrada" : "Pujar"}
         </button>
+
       </div>
+
     </article>
   );
 }
