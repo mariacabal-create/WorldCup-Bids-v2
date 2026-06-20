@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase";
 import { useBidderIdentity } from "@/lib/useBidderIdentity";
-import { formatDateHeading } from "@/lib/format";
+import { formatDateHeading, formatUSD } from "@/lib/format";
 import { Header } from "@/components/Header";
 import { PhaseFilterBar, type PhaseFilter } from "@/components/PhaseFilterBar";
 import { MatchCard } from "@/components/MatchCard";
@@ -32,12 +32,25 @@ type ActiveMatch = {
   last_bid_at: string | null;
 };
 
+type LatestBid = {
+  bid_id: string;
+  match_id: number;
+  home: string;
+  away: string;
+  home_score: number;
+  away_score: number;
+  amount_usd: number;
+  created_at: string;
+  bidder_name: string;
+};
+
 export default function Home() {
   const { identity, save: saveIdentity, hydrated } = useBidderIdentity();
 
   const [topBids, setTopBids] = useState<Record<number, TopBid>>({});
   const [summaries, setSummaries] = useState<Record<number, MatchBidSummary>>({});
   const [activeMatches, setActiveMatches] = useState<ActiveMatch[]>([]);
+  const [latestBids, setLatestBids] = useState<LatestBid[]>([]);
   const [phaseFilter, setPhaseFilter] = useState<PhaseFilter>("Todas");
   const [activeBidMatch, setActiveBidMatch] = useState<Match | null>(null);
   const [showIdentityModal, setShowIdentityModal] = useState(false);
@@ -59,7 +72,12 @@ export default function Home() {
       .select("*")
       .limit(5);
 
-    if (topError || summaryError || activeError) {
+    const { data: latestData, error: latestError } = await supabase
+      .from("latest_bids_feed")
+      .select("*")
+      .limit(8);
+
+    if (topError || summaryError || activeError || latestError) {
       setLoadError("No pudimos cargar las pujas en vivo.");
       return;
     }
@@ -77,6 +95,7 @@ export default function Home() {
     setTopBids(topMap);
     setSummaries(summaryMap);
     setActiveMatches((activeData ?? []) as ActiveMatch[]);
+    setLatestBids((latestData ?? []) as LatestBid[]);
   }, []);
 
   useEffect(() => {
@@ -195,6 +214,61 @@ export default function Home() {
                       </p>
                       <p className="text-xs text-zinc-500">pujas</p>
                     </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+
+        <section className="rounded-3xl border border-zinc-800 bg-zinc-950 p-5 shadow-xl">
+          <div className="flex items-center justify-between gap-4 mb-4">
+            <div>
+              <p className="text-yellow-400 text-xs uppercase tracking-[0.25em] font-bold">
+                Últimas pujas
+              </p>
+              <h2 className="text-white text-2xl font-bold mt-1">
+                ⚡ Movimiento en vivo
+              </h2>
+            </div>
+
+            <div className="text-3xl">🟢</div>
+          </div>
+
+          {latestBids.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-zinc-700 bg-black/30 px-4 py-5 text-center">
+              <p className="text-zinc-300 font-semibold">
+                Todavía no hay pujas recientes
+              </p>
+              <p className="text-zinc-500 text-sm mt-1">
+                Cuando alguien puje, aparecerá aquí.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {latestBids.map((bid) => (
+                <div
+                  key={bid.bid_id}
+                  className="rounded-2xl border border-zinc-800 bg-black/30 px-4 py-3 flex items-start justify-between gap-4"
+                >
+                  <div className="min-w-0">
+                    <p className="text-white font-semibold">
+                      {bid.bidder_name} tomó el{" "}
+                      <span className="text-yellow-300">
+                        {bid.home_score}-{bid.away_score}
+                      </span>
+                    </p>
+
+                    <p className="text-xs text-zinc-500 mt-1 truncate">
+                      {bid.home} vs {bid.away}
+                    </p>
+                  </div>
+
+                  <div className="text-right shrink-0">
+                    <p className="text-yellow-300 font-bold">
+                      {formatUSD(Number(bid.amount_usd))}
+                    </p>
+                    <p className="text-xs text-zinc-500">puja</p>
                   </div>
                 </div>
               ))}
