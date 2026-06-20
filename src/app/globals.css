@@ -1,0 +1,109 @@
+@import "tailwindcss";
+
+:root {
+  --pitch-900: #0a2e22;
+  --pitch-800: #0f3d2e;
+  --pitch-700: #16523d;
+  --chalk: #f5f2e8;
+  --chalk-dim: #c9c4b3;
+  --trophy: #d4a437;
+  --trophy-bright: #e8bc52;
+  --card-red: #c23b3b;
+  --score-blue: #1b4965;
+  --line: rgba(245, 242, 232, 0.12);
+}
+
+@theme inline {
+  --color-pitch-900: var(--pitch-900);
+  --color-pitch-800: var(--pitch-800);
+  --color-pitch-700: var(--pitch-700);
+  --color-chalk: var(--chalk);
+  --color-chalk-dim: var(--chalk-dim);
+  --color-trophy: var(--trophy);
+  --color-trophy-bright: var(--trophy-bright);
+  --color-card-red: var(--card-red);
+  --color-score-blue: var(--score-blue);
+  --font-display: var(--font-oswald);
+  --font-body: var(--font-inter);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--pitch-900);
+  color: var(--chalk);
+  font-family: var(--font-body), system-ui, sans-serif;
+  background-image:
+    radial-gradient(ellipse 1200px 600px at 50% -10%, rgba(212, 164, 55, 0.08), transparent),
+    repeating-linear-gradient(
+      0deg,
+      rgba(245, 242, 232, 0.015) 0px,
+      rgba(245, 242, 232, 0.015) 1px,
+      transparent 1px,
+      transparent 80px
+    );
+}
+
+::selection {
+  background: var(--trophy);
+  color: var(--pitch-900);
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+}
+::-webkit-scrollbar-track {
+  background: var(--pitch-900);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--pitch-700);
+  border-radius: 6px;
+}
+
+:focus-visible {
+  outline: 2px solid var(--trophy);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@keyframes flip-in {
+  0% { transform: rotateX(90deg); opacity: 0; }
+  60% { transform: rotateX(-10deg); opacity: 1; }
+  100% { transform: rotateX(0deg); opacity: 1; }
+}
+.flip-update {
+  animation: flip-in 0.45s cubic-bezier(0.2, 0.8, 0.2, 1);
+  transform-style: preserve-3d;
+}
+
+@keyframes pulse-ring {
+  0% { box-shadow: 0 0 0 0 rgba(212, 164, 55, 0.5); }
+  100% { box-shadow: 0 0 0 10px rgba(212, 164, 55, 0); }
+}
+.pulse-live {
+  animation: pulse-ring 1.8s ease-out infinite;
+}
+
+.font-display {
+  font-family: var(--font-oswald), "Arial Narrow", sans-serif;
+  font-stretch: condensed;
+}
+
+.scoreboard-digit {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
