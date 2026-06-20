@@ -19,7 +19,7 @@ export function LeaderScoreboard({
   useEffect(() => {
     if (topBid && prevBidId.current && prevBidId.current !== topBid.bid_id) {
       setFlip(true);
-      const t = setTimeout(() => setFlip(false), 450);
+      const t = setTimeout(() => setFlip(false), 500);
       return () => clearTimeout(t);
     }
     prevBidId.current = topBid?.bid_id ?? null;
@@ -27,44 +27,69 @@ export function LeaderScoreboard({
 
   if (!topBid) {
     return (
-      <div className="rounded-md border border-dashed border-line bg-pitch-900/40 px-4 py-3 text-center">
-        <p className="font-display text-sm uppercase tracking-wide text-chalk-dim">
+      <div className="rounded-xl border border-dashed border-line bg-pitch-900/60 py-6 text-center">
+        <p className="font-display text-xl uppercase tracking-widest text-chalk-dim">
           Aún sin pujas
         </p>
-        <p className="text-xs text-chalk-dim/70 mt-0.5">Sé el primero en marcar</p>
+
+        <p className="mt-2 text-sm text-chalk-dim/70">
+          Sé el primero en marcar
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="rounded-md bg-pitch-900 border border-trophy/30 px-4 py-3">
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2.5">
-          <span className="font-display text-[11px] uppercase tracking-widest text-chalk-dim w-12 text-right">
-            {homeAbbr}
-          </span>
+    <div className="rounded-xl bg-black/40 border border-trophy/30 px-5 py-5">
+      <div className="flex items-center justify-between">
+
+        <div className="flex items-center gap-4">
+
+          <div className="text-center w-12">
+            <div className="text-[11px] text-chalk-dim uppercase tracking-widest">
+              {homeAbbr}
+            </div>
+          </div>
+
           <div
             key={topBid.bid_id}
-            className={`flex items-center gap-1.5 font-display text-3xl font-bold scoreboard-digit text-trophy-bright ${
+            className={`flex items-center gap-3 font-display ${
               flip ? "flip-update" : ""
             }`}
           >
-            <span>{topBid.home_score}</span>
-            <span className="text-chalk-dim/40 text-xl">–</span>
-            <span>{topBid.away_score}</span>
+            <span className="text-5xl font-bold text-trophy-bright scoreboard-digit">
+              {topBid.home_score}
+            </span>
+
+            <span className="text-3xl text-chalk-dim/40">
+              :
+            </span>
+
+            <span className="text-5xl font-bold text-trophy-bright scoreboard-digit">
+              {topBid.away_score}
+            </span>
           </div>
-          <span className="font-display text-[11px] uppercase tracking-widest text-chalk-dim w-12">
-            {awayAbbr}
-          </span>
+
+          <div className="text-center w-12">
+            <div className="text-[11px] text-chalk-dim uppercase tracking-widest">
+              {awayAbbr}
+            </div>
+          </div>
+
         </div>
+
         <div className="text-right">
-          <p className="font-display text-lg font-semibold text-trophy leading-none">
+
+          <div className="text-2xl font-display font-bold text-trophy">
             {formatUSD(topBid.amount_usd)}
-          </p>
-          <p className="text-[11px] text-chalk-dim mt-1 truncate max-w-[110px]">
+          </div>
+
+          <div className="mt-1 text-xs text-chalk-dim">
             {topBid.bidder_name}
-          </p>
+          </div>
+
         </div>
+
       </div>
     </div>
   );
