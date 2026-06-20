@@ -1,86 +1,47 @@
 "use client";
 
-import { useState } from "react";
-import { Countdown } from "./Countdown";
-import { LeaderScoreboard } from "./LeaderScoreboard";
-import { formatKickoffTime } from "@/lib/format";
-import type { Match, TopBid } from "@/types/domain";
+import type { BidderIdentity } from "@/lib/useBidderIdentity";
 
-const PHASE_COLORS: Record<string, string> = {
-  "Fase de grupos": "bg-score-blue/20 text-score-blue border-score-blue/40",
-  Dieciseisavos: "bg-trophy/15 text-trophy border-trophy/40",
-  Octavos: "bg-trophy/20 text-trophy border-trophy/50",
-  Cuartos: "bg-trophy/25 text-trophy-bright border-trophy/60",
-  Semifinal: "bg-card-red/20 text-card-red border-card-red/40",
-  "Tercer puesto": "bg-chalk-dim/15 text-chalk-dim border-chalk-dim/30",
-  Final: "bg-card-red/25 text-card-red border-card-red/60",
-};
-
-function abbreviate(team: string): string {
-  if (team.length <= 4) return team.toUpperCase();
-  const words = team.split(/[\s/]+/);
-  if (words.length >= 2) {
-    return words.map((w) => w[0]).join("").slice(0, 3).toUpperCase();
-  }
-  return team.slice(0, 3).toUpperCase();
-}
-
-export function MatchCard({
-  match,
-  topBid,
-  onOpenBid,
+export function Header({
+  identity,
+  onEditIdentity,
 }: {
-  match: Match;
-  topBid: TopBid | null;
-  onOpenBid: (match: Match) => void;
+  identity: BidderIdentity | null;
+  onEditIdentity: () => void;
 }) {
-  const [now] = useState(() => Date.now());
-  const closed = new Date(match.kickoff).getTime() <= now;
-  const phaseStyle =
-    PHASE_COLORS[match.phase] ?? "bg-chalk-dim/15 text-chalk-dim border-chalk-dim/30";
-
   return (
-    <article className="rounded-xl border border-line bg-pitch-800 overflow-hidden hover:border-trophy/40 transition-colors">
-      <div className="px-4 pt-4 pb-3">
-        <div className="flex items-center justify-between gap-2 mb-3">
-          <span
-            className={`inline-block text-[10px] font-display font-semibold uppercase tracking-widest px-2 py-0.5 rounded border ${phaseStyle}`}
-          >
-            {match.group_name ? `Grupo ${match.group_name}` : match.phase}
-          </span>
-          <span className="text-[11px] text-chalk-dim font-body">
-            {formatKickoffTime(match.time)}
-          </span>
+    <header className="sticky top-0 z-30 bg-black/95 backdrop-blur border-b border-zinc-800">
+      <div className="max-w-7xl mx-auto px-6 py-7 flex items-center justify-between gap-6">
+        <div>
+          <p className="text-yellow-400 text-xs sm:text-sm uppercase tracking-[0.35em] font-semibold">
+            FIFA WORLD CUP 2026
+          </p>
+
+          <h1 className="text-4xl sm:text-5xl font-bold text-white mt-2 leading-tight">
+            Subasta de Marcadores
+          </h1>
+
+          <p className="text-zinc-400 text-base mt-3">
+            Compite con tus amigos por los resultados exactos de cada partido
+          </p>
         </div>
 
-        <div className="flex items-baseline justify-between gap-2 mb-1">
-          <h3 className="font-display text-lg font-medium leading-tight">
-            {match.home}
-            <span className="text-chalk-dim mx-1.5 font-normal">vs</span>
-            {match.away}
-          </h3>
-        </div>
-        <p className="text-xs text-chalk-dim mb-3">
-          {match.venue}, {match.city}
-        </p>
-
-        <LeaderScoreboard
-          topBid={topBid}
-          homeAbbr={abbreviate(match.home)}
-          awayAbbr={abbreviate(match.away)}
-        />
-      </div>
-
-      <div className="px-4 py-3 bg-pitch-900/40 border-t border-line flex items-center justify-between gap-3">
-        <Countdown kickoff={match.kickoff} />
         <button
-          onClick={() => onOpenBid(match)}
-          disabled={closed}
-          className="shrink-0 px-4 py-2 rounded-md bg-trophy text-pitch-900 text-xs font-display font-semibold uppercase tracking-wide hover:bg-trophy-bright transition-colors disabled:bg-pitch-700 disabled:text-chalk-dim disabled:cursor-not-allowed"
+          onClick={onEditIdentity}
+          className="shrink-0 bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-3 hover:border-yellow-400 transition"
         >
-          {closed ? "Cerrada" : topBid ? "Superar puja" : "Pujar"}
+          {identity ? (
+            <>
+              <div className="text-zinc-400 text-xs">Pujando como</div>
+              <div className="text-yellow-400 font-semibold">
+                {identity.name}
+              </div>
+            </>
+          ) : (
+            <div className="text-white font-semibold">👤 Identifícate</div>
+          )}
         </button>
       </div>
-    </article>
+    </header>
   );
 }
