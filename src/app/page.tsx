@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase";
 import { useBidderIdentity } from "@/lib/useBidderIdentity";
-import { formatDateHeading, formatUSD } from "@/lib/format";
+import { formatDateHeading } from "@/lib/format";
 import { Header } from "@/components/Header";
 import { PhaseFilterBar, type PhaseFilter } from "@/components/PhaseFilterBar";
 import { MatchCard } from "@/components/MatchCard";
@@ -22,12 +22,13 @@ export type MatchBidSummary = {
   last_bid_at: string | null;
 };
 
-type PlayerRanking = {
-  bidder_id: string;
-  bidder_name: string;
+type ActiveMatch = {
+  match_id: number;
+  home: string;
+  away: string;
   total_bids: number;
-  matches_played: number;
-  total_bid_usd: number;
+  total_players: number;
+  total_scores: number;
   last_bid_at: string | null;
 };
 
@@ -36,7 +37,7 @@ export default function Home() {
 
   const [topBids, setTopBids] = useState<Record<number, TopBid>>({});
   const [summaries, setSummaries] = useState<Record<number, MatchBidSummary>>({});
-  const [rankings, setRankings] = useState<PlayerRanking[]>([]);
+  const [activeMatches, setActiveMatches] = useState<ActiveMatch[]>([]);
   const [phaseFilter, setPhaseFilter] = useState<PhaseFilter>("Todas");
   const [activeBidMatch, setActiveBidMatch] = useState<Match | null>(null);
   const [showIdentityModal, setShowIdentityModal] = useState(false);
@@ -53,12 +54,12 @@ export default function Home() {
       .from("match_bid_summaries")
       .select("*");
 
-    const { data: rankingData, error: rankingError } = await supabase
-      .from("player_rankings")
+    const { data: activeData, error: activeError } = await supabase
+      .from("most_active_matches")
       .select("*")
-      .limit(10);
+      .limit(5);
 
-    if (topError || summaryError || rankingError) {
+    if (topError || summaryError || activeError) {
       setLoadError("No pudimos cargar las pujas en vivo.");
       return;
     }
@@ -75,7 +76,7 @@ export default function Home() {
 
     setTopBids(topMap);
     setSummaries(summaryMap);
-    setRankings((rankingData ?? []) as PlayerRanking[]);
+    setActiveMatches((activeData ?? []) as ActiveMatch[]);
   }, []);
 
   useEffect(() => {
@@ -147,52 +148,53 @@ export default function Home() {
           <div className="flex items-center justify-between gap-4 mb-4">
             <div>
               <p className="text-yellow-400 text-xs uppercase tracking-[0.25em] font-bold">
-                Ranking general
+                Partidos más activos
               </p>
               <h2 className="text-white text-2xl font-bold mt-1">
-                Top pujadores
+                🔥 Donde más se está jugando
               </h2>
             </div>
 
-            <div className="text-3xl">🏆</div>
+            <div className="text-3xl">⚽</div>
           </div>
 
-          {rankings.length === 0 ? (
+          {activeMatches.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-zinc-700 bg-black/30 px-4 py-5 text-center">
               <p className="text-zinc-300 font-semibold">
-                Todavía no hay ranking
+                Todavía no hay partidos activos
               </p>
               <p className="text-zinc-500 text-sm mt-1">
-                La primera puja abrirá la tabla.
+                La primera puja abrirá este ranking.
               </p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {rankings.map((player, index) => (
+              {activeMatches.map((item, index) => (
                 <div
-                  key={player.bidder_id}
-                  className="rounded-2xl border border-zinc-800 bg-black/30 px-4 py-3 flex items-center justify-between gap-4"
+                  key={item.match_id}
+                  className="rounded-2xl border border-zinc-800 bg-black/30 px-4 py-3"
                 >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-9 h-9 rounded-full bg-yellow-400 text-black flex items-center justify-center font-bold">
-                      {index + 1}
-                    </div>
-
+                  <div className="flex items-start justify-between gap-4">
                     <div className="min-w-0">
-                      <p className="text-white font-bold truncate">
-                        {player.bidder_name}
+                      <p className="text-xs text-yellow-400 font-bold">
+                        #{index + 1}
                       </p>
-                      <p className="text-xs text-zinc-500">
-                        {player.total_bids} pujas · {player.matches_played} partidos
+
+                      <p className="text-white font-bold truncate mt-1">
+                        {item.home} vs {item.away}
+                      </p>
+
+                      <p className="text-xs text-zinc-500 mt-1">
+                        {item.total_scores} marcadores · {item.total_players} participantes
                       </p>
                     </div>
-                  </div>
 
-                  <div className="text-right shrink-0">
-                    <p className="text-yellow-300 font-bold">
-                      {formatUSD(Number(player.total_bid_usd))}
-                    </p>
-                    <p className="text-xs text-zinc-500">total pujado</p>
+                    <div className="text-right shrink-0">
+                      <p className="text-yellow-300 text-xl font-bold">
+                        {item.total_bids}
+                      </p>
+                      <p className="text-xs text-zinc-500">pujas</p>
+                    </div>
                   </div>
                 </div>
               ))}
