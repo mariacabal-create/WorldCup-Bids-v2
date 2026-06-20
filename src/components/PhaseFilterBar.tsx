@@ -21,16 +21,16 @@ export function PhaseFilterBar({
   onChange: (p: PhaseFilter) => void;
 }) {
   return (
-    <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
-      <div className="flex gap-2 pb-1 min-w-max">
+    <div className="overflow-x-auto pb-2">
+      <div className="flex gap-3 min-w-max">
         {PHASES.map((p) => (
           <button
             key={p}
             onClick={() => onChange(p)}
-            className={`shrink-0 px-3.5 py-1.5 rounded-full text-xs font-display font-medium uppercase tracking-wide border transition-colors ${
+            className={`rounded-2xl px-5 py-3 text-sm font-bold transition-all border whitespace-nowrap ${
               active === p
-                ? "bg-trophy text-pitch-900 border-trophy"
-                : "border-line text-chalk-dim hover:border-chalk-dim hover:text-chalk"
+                ? "bg-yellow-400 text-black border-yellow-400 shadow-lg"
+                : "bg-zinc-950 text-zinc-300 border-zinc-700 hover:border-yellow-400 hover:text-white"
             }`}
           >
             {p}
